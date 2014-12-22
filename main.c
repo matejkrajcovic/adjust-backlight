@@ -14,13 +14,13 @@ int main(void)
 
 double get_max_brightness(void)
 {
+	double max_brightness;
 	FILE *f = fopen("/sys/class/backlight/acpi_video0/max_brightness", "r");
 	if (f == NULL) {
 		perror("get_max_brightness fopen()");
 		exit(EXIT_FAILURE);
 	}
 
-	double max_brightness;
 	if (fscanf(f, "%lf", &max_brightness) != 1) {
 		perror("get_max_brightness fscanf()");
 		if (fclose(f) != 0) {
