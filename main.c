@@ -1,5 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include "sun.h"
+
+#define LATITUDE 48.15349638
+#define LONGITUDE 17.11362930
+#define LOCAL_OFFSET 1
 
 double get_max_brightness(void);
 
@@ -7,8 +13,24 @@ void set_brightness(double brightness);
 
 int main(void)
 {
-	double max_brightness = get_max_brightness();
-	set_brightness(max_brightness / 2);
+	time_t now = time(NULL);
+
+	struct tm *today = localtime(&now);
+	int day = today->tm_mday;
+	int month = today->tm_mon + 1;
+	int year = today->tm_year + 1900;
+	
+	struct tm *sunrise = calculate_sunrise(false, day, month, year, LATITUDE, LONGITUDE, LOCAL_OFFSET);
+	struct tm *sunset  = calculate_sunrise( true, day, month, year, LATITUDE, LONGITUDE, LOCAL_OFFSET);
+	
+	/* change brightness before sunrise or after sunset */
+	if ((difftime(now, mktime(sunrise)) > 0) || (difftime(now, mktime(sunset)) < 0)) {
+		double max_brightness = get_max_brightness();
+		set_brightness(max_brightness / 2);
+	}
+
+	free(sunset);
+	free(sunrise);
 	return EXIT_SUCCESS;
 }
 
