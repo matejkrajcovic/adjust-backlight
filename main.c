@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 #include "sun.h"
 
 #define LATITUDE 48.15349638
 #define LONGITUDE 17.11362930
 #define LOCAL_OFFSET 1
+
+bool before(time_t first, time_t second);
+
+bool after(time_t first, time_t second);
 
 double get_max_brightness(void);
 
@@ -24,7 +29,7 @@ int main(void)
 	struct tm *sunset  = calculate_sunrise( true, day, month, year, LATITUDE, LONGITUDE, LOCAL_OFFSET);
 	
 	/* change brightness before sunrise or after sunset */
-	if ((difftime(now, mktime(sunrise)) > 0) || (difftime(now, mktime(sunset)) < 0)) {
+	if (before(now, mktime(sunrise)) || after(now, mktime(sunset))) {
 		double max_brightness = get_max_brightness();
 		set_brightness(max_brightness / 2);
 	}
@@ -32,6 +37,18 @@ int main(void)
 	free(sunset);
 	free(sunrise);
 	return EXIT_SUCCESS;
+}
+
+/* first is before second */
+bool before(time_t first, time_t second)
+{
+	return (difftime(first, second) > 0);
+}
+
+/* first is after second */
+bool after(time_t first, time_t second)
+{
+	return (difftime(first, second) < 0);
 }
 
 double get_max_brightness(void)
