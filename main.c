@@ -7,6 +7,7 @@
 #define LATITUDE 48.15349638
 #define LONGITUDE 17.11362930
 #define LOCAL_OFFSET 1
+#define SECONDS_IN_HOUR 3600
 
 bool before(time_t first, time_t second);
 
@@ -28,10 +29,21 @@ int main(void)
 	struct tm *sunrise = calculate_sunrise(false, day, month, year, LATITUDE, LONGITUDE, LOCAL_OFFSET);
 	struct tm *sunset  = calculate_sunrise( true, day, month, year, LATITUDE, LONGITUDE, LOCAL_OFFSET);
 	
-	/* change brightness before sunrise or after sunset */
-	if (before(now, mktime(sunrise)) || after(now, mktime(sunset))) {
-		double max_brightness = get_max_brightness();
-		set_brightness(max_brightness / 2);
+	time_t sunrise_time_t = mktime(sunrise);
+	time_t sunset_time_t = mktime(sunset);
+
+	/* before sunrise or after sunset */
+	bool night = before(now, sunrise_time_t) || after(now, sunset_time_t);
+
+	/* hour after sunrise or hour before sunset */
+	bool almost_night = before(now, sunrise_time_t + SECONDS_IN_HOUR) || after(now, sunset_time_t - SECONDS_IN_HOUR);
+
+	double max_brightness = get_max_brightness();
+
+	if (night) {
+		set_brightness(max_brightness * 0.25);
+	} else if (almost_night) {
+		set_brightness(max_brightness * 0.50);
 	}
 
 	free(sunset);
